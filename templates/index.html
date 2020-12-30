@@ -1,0 +1,12 @@
+<html>
+    <head>
+        <title>Stonks</title>
+    </head>
+    <body>
+        {% for stock in stocks %}
+            {{ stock.id }}
+            {{ stock.symbol }}
+            {{ stock.name }}
+        {% endfor %}
+    </body>
+</html>
