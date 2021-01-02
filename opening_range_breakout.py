@@ -25,15 +25,19 @@ cursor.execute(
 stocks = cursor.fetchall()
 symbols = [stock['symbol'] for stock in stocks]
 
-
-api = tradeapi.REST(config.API_KEY, config.SECRET_KEY, base_url=config.API_URL)
-orders = api.list_orders()
-existing_orders_symbols = [order.symbol for order in orders]
-
-# current_date = '2020-10-29'
-current_date = date.today().isoformat()
+current_date = '2020-10-29'
+# current_date = date.today().isoformat()
 start_minute_bar = f"{current_date} 09:30:00-04:00"
 end_minute_bar = f"{current_date} 09:45:00-04:00"
+
+api = tradeapi.REST(config.API_KEY, config.SECRET_KEY, base_url=config.API_URL)
+
+orders = api.list_orders(status='all', limit=500, after=f"{current_date}T13:30:00Z")
+existing_orders_symbols = [order.symbol for order in orders]
+print(existing_orders_symbols)
+
+
+
 
 
 for symbol in symbols:

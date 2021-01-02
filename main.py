@@ -27,6 +27,15 @@ def index(request: Request):
             ORDER BY symbol
         ) WHERE date = ?
         """, (date.today().isoformat(),))
+    elif stock_filter == 'new_closing_lows':
+        cursor.execute("""
+        SELECT * FROM (
+            SELECT symbol, name, stock_id, min(close), date
+            FROM stock_price join stock on stock.id = stock_price.stock_id
+            GROUP BY stock_id
+            ORDER BY symbol
+        ) WHERE date = ?
+        """, (date.today().isoformat(),))
     else:
         cursor.execute("""
         SELECT id, symbol, name FROM stock ORDER BY symbol
