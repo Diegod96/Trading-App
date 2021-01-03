@@ -94,6 +94,12 @@ print(messages)
 context = ssl.create_default_context()
 with smtplib.SMTP_SSL(config.EMAIL_HOST,config.EMAIL_PORT, context=context) as server:
     server.login(config.EMAIL_SENDER_ADDRESS, config.EMAIL_PASSWORD)
-    email_message = "\n\n".join(messages)
+    
+    email_message = f"Subject: Trade Notifications for {current_date}\n\n"
+    email_message += "\n\n".join(messages)
+    
     server.sendmail(config.EMAIL_SENDER_ADDRESS, config.EMAIL_RECEIVER_ADDRESS, email_message)
     print("Email sent succesfully")
+    
+    server.sendmail(config.EMAIL_SENDER_ADDRESS, config.EMAIL_SMS, email_message)
+    print("SMS notification sent succesfully")
