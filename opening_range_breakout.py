@@ -101,5 +101,5 @@ with smtplib.SMTP_SSL(config.EMAIL_HOST,config.EMAIL_PORT, context=context) as s
     server.sendmail(config.EMAIL_SENDER_ADDRESS, config.EMAIL_RECEIVER_ADDRESS, email_message)
     print("Email sent succesfully")
     
-    server.sendmail(config.EMAIL_SENDER_ADDRESS, config.EMAIL_SMS, email_message)
-    print("SMS notification sent succesfully")
+    # server.sendmail(config.EMAIL_SENDER_ADDRESS, config.EMAIL_SMS, email_message)
+    # print("SMS notification sent succesfully")
