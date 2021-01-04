@@ -1,5 +1,4 @@
 import sqlite3
-
 import config
 from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
@@ -13,11 +12,12 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/")
 def index(request: Request):
+
     stock_filter = request.query_params.get('filter', False)
     connection = sqlite3.connect(config.DB_File)
     connection.row_factory = sqlite3.Row
     cursor = connection.cursor()
-    
+
     if stock_filter == 'new_closing_highs':
         cursor.execute("""
         SELECT * FROM (
@@ -40,10 +40,25 @@ def index(request: Request):
         cursor.execute("""
         SELECT id, symbol, name FROM stock ORDER BY symbol
                        """)
-        
+
     rows = cursor.fetchall()
 
-    return templates.TemplateResponse("index.html", {"request": request, "stocks": rows})
+    # current_date = date.today().isoformat()
+    current_date = '2020-08-11'
+    cursor.execute("""
+                SELECT symbol, rsi_14, sma_20, sma_50, close
+                FROM stock JOIN stock_price on stock_price.id = stock.id
+                WHERE date = ?;"""
+                    , (current_date,))
+    indicator_rows = cursor.fetchall()
+    indicator_values = {}
+    for row in indicator_rows:
+        indicator_values[row['symbol']] = row
+    
+
+    print(indicator_values)
+
+    return templates.TemplateResponse("index.html", {"request": request, "stocks": rows, "indicator_values": indicator_values})
 
 
 @app.get("/stock/{symbol}")
@@ -52,13 +67,13 @@ def stock_detail(request: Request, symbol):
     connection = sqlite3.connect(config.DB_File)
     connection.row_factory = sqlite3.Row
     cursor = connection.cursor()
-    
+
     cursor.execute("""
                    SELECT * FROM strategy
                    """)
 
     strategies = cursor.fetchall()
-    
+
     cursor.execute(
         """SELECT id, symbol, name FROM stock WHERE symbol = ?""", (symbol,))
     row = cursor.fetchone()
@@ -74,22 +89,23 @@ def stock_detail(request: Request, symbol):
 def apply_strategy(strategy_id: int = Form(...), stock_id: int = Form(...)):
     connection = sqlite3.connect(config.DB_File)
     cursor = connection.cursor()
-    
+
     cursor.execute("""
         INSERT INTO stock_strategy (stock_id, strategy_id) VALUES (?, ?)
         """, (stock_id, strategy_id))
-    
+
     connection.commit()
-    
+
     return RedirectResponse(url=f"/strategy/{strategy_id}", status_code=303)
+
 
 @app.get("/strategy/{strategy_id}")
 def strategy(request: Request, strategy_id):
     connection = sqlite3.connect(config.DB_File)
     connection.row_factory = sqlite3.Row
-    
+
     cursor = connection.cursor()
-    
+
     cursor.execute("""
         SELECT id, name
         FROM strategy
@@ -97,15 +113,14 @@ def strategy(request: Request, strategy_id):
     """, (strategy_id,))
 
     strategy = cursor.fetchone()
-    
+
     cursor.execute("""
         SELECT symbol, name
         FROM stock JOIN stock_strategy on stock_strategy.stock_id = stock.id
         WHERE strategy_id = ?
         """, (strategy_id,)
-        )
-    
+    )
+
     stocks = cursor.fetchall()
-    
+
     return templates.TemplateResponse("strategy.html", {"request": request, "stocks": stocks, "strategy": strategy})
-    
