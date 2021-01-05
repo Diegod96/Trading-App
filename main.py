@@ -43,11 +43,10 @@ def index(request: Request):
 
     rows = cursor.fetchall()
 
-    # current_date = date.today().isoformat()
-    current_date = '2020-08-11'
+    current_date = date.today().isoformat()
     cursor.execute("""
                 SELECT symbol, rsi_14, sma_20, sma_50, close
-                FROM stock JOIN stock_price on stock_price.id = stock.id
+                FROM stock JOIN stock_price on stock_price.stock_id = stock.id
                 WHERE date = ?;"""
                     , (current_date,))
     indicator_rows = cursor.fetchall()

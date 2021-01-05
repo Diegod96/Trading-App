@@ -26,8 +26,8 @@ cursor.execute(
 stocks = cursor.fetchall()
 symbols = [stock['symbol'] for stock in stocks]
 
-current_date = '2020-10-29'
-# current_date = date.today().isoformat()
+# current_date = '2020-10-29'
+current_date = date.today().isoformat()
 start_minute_bar = f"{current_date} 09:30:00-04:00"
 end_minute_bar = f"{current_date} 09:45:00-04:00"
 
