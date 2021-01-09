@@ -25,8 +25,8 @@ def index(request: Request):
             FROM stock_price join stock on stock.id = stock_price.stock_id
             GROUP BY stock_id
             ORDER BY symbol
-        ) WHERE date = ?
-        """, (date.today().isoformat(),))
+        ) WHERE date = (select max(date) from stock_price) 
+        """)
     elif stock_filter == 'new_closing_lows':
         cursor.execute("""
         SELECT * FROM (
@@ -34,8 +34,8 @@ def index(request: Request):
             FROM stock_price join stock on stock.id = stock_price.stock_id
             GROUP BY stock_id
             ORDER BY symbol
-        ) WHERE date = ?
-        """, (date.today().isoformat(),))
+        ) WHERE date = (select max(date) from stock_price) 
+        """)
     else:
         cursor.execute("""
         SELECT id, symbol, name FROM stock ORDER BY symbol
@@ -43,20 +43,19 @@ def index(request: Request):
 
     rows = cursor.fetchall()
 
-    # current_date = date.today().isoformat()
-    current_date = '2020-08-11'
+    current_date = date.today().isoformat()
     cursor.execute("""
                 SELECT symbol, rsi_14, sma_20, sma_50, close
-                FROM stock JOIN stock_price on stock_price.id = stock.id
-                WHERE date = ?;"""
-                    , (current_date,))
+                FROM stock JOIN stock_price on stock_price.stock_id = stock.id
+                WHERE date = (select max(date) from stock_price)"""
+                    )
     indicator_rows = cursor.fetchall()
     indicator_values = {}
     for row in indicator_rows:
         indicator_values[row['symbol']] = row
     
 
-    print(indicator_values)
+#print(indicator_values)
 
     return templates.TemplateResponse("index.html", {"request": request, "stocks": rows, "indicator_values": indicator_values})
 
